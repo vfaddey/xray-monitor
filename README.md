@@ -28,7 +28,7 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Если репозиторий будет называться не `faddey/xray_monitoring`, перед публикацией поменяйте `DEFAULT_REPOSITORY` в `install.sh`. Также репозиторий всегда можно передать установщику через `--repo OWNER/REPO`.
+Если репозиторий будет называться не `vfaddey/xray_monitoring`, перед публикацией поменяйте `DEFAULT_REPOSITORY` в `install.sh`. Также репозиторий всегда можно передать установщику через `--repo OWNER/REPO`.
 
 ## Локальная сборка
 
@@ -46,7 +46,7 @@ make linux-amd64
 
 ```bash
 curl -fsSL \
-  https://raw.githubusercontent.com/faddey/xray_monitoring/main/install.sh \
+  https://raw.githubusercontent.com/vfaddey/xray_monitoring/main/install.sh \
   | sudo bash -s -- \
       --subscription 'https://example.com/sub/secret' \
       --public-host monitor.example.com
