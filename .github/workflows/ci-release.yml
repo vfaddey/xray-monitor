@@ -1,0 +1,82 @@
+name: CI and release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Verify formatting
+        run: test -z "$(gofmt -l cmd internal)"
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test with race detector
+        run: go test -race ./...
+
+  release:
+    name: Publish Linux binaries
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build release files
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          mkdir -p dist
+          for arch in amd64 arm64; do
+            CGO_ENABLED=0 GOOS=linux GOARCH="$arch" \
+              go build -trimpath \
+              -ldflags "-s -w -X main.version=${VERSION}" \
+              -o "dist/xray-monitor-linux-${arch}" \
+              ./cmd/xray-monitor
+          done
+          cp install.sh dist/install.sh
+          chmod 0755 dist/install.sh
+          cd dist
+          sha256sum xray-monitor-linux-amd64 xray-monitor-linux-arm64 install.sh > checksums.txt
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            dist/xray-monitor-linux-amd64 \
+            dist/xray-monitor-linux-arm64 \
+            dist/install.sh \
+            dist/checksums.txt \
+            --verify-tag \
+            --generate-notes \
+            --title "${GITHUB_REF_NAME}"

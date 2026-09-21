@@ -1,0 +1,17 @@
+{
+  "listen": "127.0.0.1:9187",
+  "api_token": "replace-with-a-long-random-token",
+  "subscriptions": [
+    "https://example.com/subscription"
+  ],
+  "refresh_interval": "5m",
+  "check_interval": "1m",
+  "check_url": "https://www.gstatic.com/generate_204",
+  "check_timeout": "15s",
+  "concurrency": 16,
+  "database_path": "./monitor.db",
+  "xray_binary": "xray",
+  "xray_work_dir": "./xray-runtime",
+  "proxy_listen": "127.0.0.1",
+  "xray_log_level": "warning"
+}
