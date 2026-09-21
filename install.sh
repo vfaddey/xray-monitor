@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-DEFAULT_REPOSITORY="faddey/xray_monitoring"
+DEFAULT_REPOSITORY="vfaddey/xray-monitor"
 REPOSITORY="${XRAY_MONITOR_REPO:-$DEFAULT_REPOSITORY}"
 VERSION="${XRAY_MONITOR_VERSION:-latest}"
 PUBLIC_HOST=""
