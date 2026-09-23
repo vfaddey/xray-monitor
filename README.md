@@ -48,11 +48,12 @@ make linux-amd64
 curl -fsSL \
   https://raw.githubusercontent.com/vfaddey/xray-monitor/main/install.sh \
   | sudo bash -s -- \
-      --subscription 'https://example.com/sub/secret' \
-      --public-host monitor.example.com
+      --subscription 'https://example.com/sub/secret'
 ```
 
 Скрипт определяет `amd64`/`arm64`, при необходимости ставит Xray официальным установщиком XTLS, скачивает последний релиз монитора, обязательно проверяет SHA-256 и запускает встроенную установку systemd. Для нескольких подписок повторите `--subscription`.
+
+Если `--public-host` не указан, инсталлятор автоматически определит публичный IPv4 сервера через `https://api.ipify.org`. Явно передайте `--public-host monitor.example.com`, если нужен DNS или сервер находится за NAT с отдельной схемой маршрутизации.
 
 Установка конкретной версии или из репозитория с другим именем:
 
@@ -99,6 +100,8 @@ go run ./cmd/xray-monitor run -config config.local.json
 ```
 
 ## API
+
+Краткий контракт для подключения нового сервера к VPN-админке: [docs/admin-integration.md](docs/admin-integration.md).
 
 Все `/api/v1/*` методы требуют заголовок `Authorization: Bearer <token>`.
 

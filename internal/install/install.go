@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/faddey/xray-monitor/internal/config"
 )
@@ -64,6 +66,13 @@ func Run(options Options) (Result, error) {
 			} else if !errors.Is(err, os.ErrNotExist) {
 				return Result{}, err
 			}
+		}
+	}
+	options.PublicHost = strings.TrimSpace(options.PublicHost)
+	if options.PublicHost == "" {
+		options.PublicHost, err = detectPublicIPv4()
+		if err != nil {
+			return Result{}, fmt.Errorf("detect public IP: %w; specify -public-host explicitly", err)
 		}
 	}
 
@@ -164,10 +173,40 @@ WantedBy=multi-user.target
 	if output, err := exec.Command("systemctl", "restart", "xray-monitor.service").CombinedOutput(); err != nil {
 		return Result{}, fmt.Errorf("start service: %w: %s", err, strings.TrimSpace(string(output)))
 	}
-	if options.PublicHost == "" {
-		options.PublicHost, _ = os.Hostname()
-	}
 	return Result{URL: "http://" + net.JoinHostPort(options.PublicHost, strconv.Itoa(port)) + "/api/v1/status", Token: token}, nil
+}
+
+func detectPublicIPv4() (string, error) {
+	client := &http.Client{Timeout: 5 * time.Second}
+	return fetchPublicIPv4(client, "https://api.ipify.org")
+}
+
+func fetchPublicIPv4(client *http.Client, endpoint string) (string, error) {
+	req, err := http.NewRequest(http.MethodGet, endpoint, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("User-Agent", "xray-monitor-installer/1")
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("public IP service returned HTTP %d", resp.StatusCode)
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 65))
+	if err != nil {
+		return "", err
+	}
+	if len(body) > 64 {
+		return "", errors.New("public IP service returned an oversized response")
+	}
+	ip := net.ParseIP(strings.TrimSpace(string(body)))
+	if ip == nil || ip.To4() == nil || !ip.IsGlobalUnicast() || ip.IsPrivate() {
+		return "", errors.New("public IP service returned an invalid or non-public IPv4 address")
+	}
+	return ip.String(), nil
 }
 
 func ensureUser() (*user.User, error) {

@@ -18,8 +18,8 @@ Usage:
 
 Options:
   --subscription URL   Subscription URL; may be repeated (required)
-  --public-host HOST   Hostname/IP printed in the resulting API URL
-  --repo OWNER/REPO    GitHub repository (default: faddey/xray_monitoring)
+  --public-host HOST   Hostname/IP for the API URL (default: detected public IPv4)
+  --repo OWNER/REPO    GitHub repository (default: vfaddey/xray-monitor)
   --version VERSION    Release tag such as v1.0.0 (default: latest)
   --skip-xray          Do not automatically install Xray when it is missing
   --force              Replace an existing xray-monitor installation

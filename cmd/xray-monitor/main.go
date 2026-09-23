@@ -52,7 +52,7 @@ func execute(args []string) error {
 		flags := flag.NewFlagSet("install", flag.ContinueOnError)
 		var subscriptions stringList
 		flags.Var(&subscriptions, "subscription", "subscription URL (repeat for multiple subscriptions)")
-		publicHost := flags.String("public-host", "", "hostname or IP used in the printed API URL")
+		publicHost := flags.String("public-host", "", "hostname or IP used in the printed API URL (default: detected public IPv4)")
 		xrayBinary := flags.String("xray-binary", "xray", "path to the Xray executable")
 		force := flags.Bool("force", false, "replace an existing installation")
 		if err := flags.Parse(args[1:]); err != nil {
